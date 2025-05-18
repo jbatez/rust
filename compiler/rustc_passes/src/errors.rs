@@ -620,6 +620,16 @@ pub(crate) struct UsedCompilerLinker {
 }
 
 #[derive(Diagnostic)]
+#[diag(passes_define_in_every_cgu_used_static)]
+pub(crate) struct DefineInEveryCguUsedStatic {
+    #[primary_span]
+    pub attr_span: Span,
+    #[label]
+    pub span: Span,
+    pub target: &'static str,
+}
+
+#[derive(Diagnostic)]
 #[diag(passes_allow_internal_unstable)]
 pub(crate) struct AllowInternalUnstable {
     #[primary_span]

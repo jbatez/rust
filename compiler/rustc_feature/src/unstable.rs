@@ -461,6 +461,8 @@ declare_features! (
     /// Allows the use of default values on struct definitions and the construction of struct
     /// literals with the functional update syntax without a base.
     (unstable, default_field_values, "1.85.0", Some(132162)),
+    /// Allows using the `#[define_in_every_cgu_used]` attribute.
+    (unstable, define_in_every_cgu_used, "CURRENT_RUSTC_VERSION", Some(1)),
     /// Allows using `#[deprecated_safe]` to deprecate the safeness of a function or trait
     (unstable, deprecated_safe, "1.61.0", Some(94978)),
     /// Allows having using `suggestion` in the `#[deprecated]` attribute.

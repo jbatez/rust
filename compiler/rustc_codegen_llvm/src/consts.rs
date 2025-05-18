@@ -332,7 +332,12 @@ impl<'ll> CodegenCx<'ll, '_> {
 
         debug!(?sym, ?fn_attrs);
 
-        let g = if def_id.is_local() && !self.tcx.is_foreign_item(def_id) {
+        let define_in_every_cgu_used =
+            fn_attrs.flags.contains(CodegenFnAttrFlags::DEFINE_IN_EVERY_CGU_USED);
+
+        let g = if define_in_every_cgu_used
+            || (def_id.is_local() && !self.tcx.is_foreign_item(def_id))
+        {
             if let Some(g) = self.get_declared_value(sym) {
                 if self.val_ty(g) != self.type_ptr() {
                     span_bug!(self.tcx.def_span(def_id), "Conflicting types for static");
@@ -343,6 +348,12 @@ impl<'ll> CodegenCx<'ll, '_> {
 
             if !self.tcx.is_reachable_non_generic(def_id) {
                 llvm::set_visibility(g, llvm::Visibility::Hidden);
+            }
+
+            if define_in_every_cgu_used {
+                self.instances.borrow_mut().insert(instance, g);
+                self.codegen_static_item(def_id);
+                return g;
             }
 
             g

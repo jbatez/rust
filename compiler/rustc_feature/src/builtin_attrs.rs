@@ -619,6 +619,12 @@ pub static BUILTIN_ATTRIBUTES: &[BuiltinAttribute] = &[
         EncodeCrossCrate::Yes, min_generic_const_args, experimental!(type_const),
     ),
 
+    // `#[define_in_every_cgu_used]`
+    gated!(
+        define_in_every_cgu_used, Normal, template!(Word), ErrorPreceding,
+        EncodeCrossCrate::No, experimental!(define_in_every_cgu_used),
+    ),
+
     // ==========================================================================
     // Internal attributes: Stability, deprecation, and unsafe:
     // ==========================================================================

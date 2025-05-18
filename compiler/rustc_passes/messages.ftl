@@ -139,6 +139,10 @@ passes_debug_visualizer_placement =
 passes_debug_visualizer_unreadable =
     couldn't read {$file}: {$error}
 
+passes_define_in_every_cgu_used_static =
+    attribute must be applied to a `static` variable
+    .label = but this is a {$target}
+
 passes_deprecated =
     attribute is ignored here
 

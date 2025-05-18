@@ -467,6 +467,9 @@ fn codegen_fn_attrs(tcx: TyCtxt<'_>, did: LocalDefId) -> CodegenFnAttrs {
                     ))
                 })
             }
+            sym::define_in_every_cgu_used => {
+                codegen_fn_attrs.flags |= CodegenFnAttrFlags::DEFINE_IN_EVERY_CGU_USED
+            }
             _ => {}
         }
     }

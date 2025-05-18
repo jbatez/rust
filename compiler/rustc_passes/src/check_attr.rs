@@ -283,6 +283,7 @@ impl<'tcx> CheckAttrVisitor<'tcx> {
                             | sym::pointee // FIXME(derive_coerce_pointee)
                             | sym::omit_gdb_pretty_printer_section // FIXME(omit_gdb_pretty_printer_section)
                             | sym::used // handled elsewhere to restrict to static items
+                            | sym::define_in_every_cgu_used // handled elsewhere to restrict to static items
                             | sym::repr // handled elsewhere to restrict to type decls items
                             | sym::instruction_set // broken on stable!!!
                             | sym::windows_subsystem // broken on stable!!!
@@ -354,6 +355,7 @@ impl<'tcx> CheckAttrVisitor<'tcx> {
 
         self.check_repr(attrs, span, target, item, hir_id);
         self.check_used(attrs, target, span);
+        self.check_define_in_every_cgu_used(attrs, target, span);
         self.check_rustc_force_inline(hir_id, attrs, span, target);
     }
 
@@ -2176,6 +2178,23 @@ impl<'tcx> CheckAttrVisitor<'tcx> {
             self.tcx
                 .dcx()
                 .emit_err(errors::UsedCompilerLinker { spans: vec![linker_span, compiler_span] });
+        }
+    }
+
+    fn check_define_in_every_cgu_used(
+        &self,
+        attrs: &[Attribute],
+        target: Target,
+        target_span: Span,
+    ) {
+        for attr in attrs.iter().filter(|attr| attr.has_name(sym::define_in_every_cgu_used)) {
+            if target != Target::Static {
+                self.dcx().emit_err(errors::DefineInEveryCguUsedStatic {
+                    attr_span: attr.span(),
+                    span: target_span,
+                    target: target.name(),
+                });
+            }
         }
     }
 

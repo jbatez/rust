@@ -809,6 +809,7 @@ symbols! {
         // --------------------------
         default_type_parameter_fallback,
         default_type_params,
+        define_in_every_cgu_used,
         define_opaque,
         delayed_bug_from_inside_query,
         deny,

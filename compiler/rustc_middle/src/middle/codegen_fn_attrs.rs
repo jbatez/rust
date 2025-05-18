@@ -139,6 +139,9 @@ bitflags::bitflags! {
         const ALLOCATOR_ZEROED          = 1 << 18;
         /// `#[no_builtins]`: indicates that disable implicit builtin knowledge of functions for the function.
         const NO_BUILTINS               = 1 << 19;
+        /// `#[define_in_every_cgu_used]`: indicates that the item
+        /// needs to be defined in every codegen unit where it gets used.
+        const DEFINE_IN_EVERY_CGU_USED  = 1 << 20;
     }
 }
 rustc_data_structures::external_bitflags_debug! { CodegenFnAttrFlags }
