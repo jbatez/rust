@@ -37,6 +37,10 @@ pub use self::va_list::{VaArgSafe, VaList, VaListImpl};
 )]
 pub mod va_list;
 
+#[cfg(any(target_vendor = "apple", doc))]
+#[unstable(feature = "core_ffi_objc", issue = "none")]
+pub mod objc;
+
 mod primitives;
 #[stable(feature = "core_ffi_c", since = "1.64.0")]
 pub use self::primitives::{

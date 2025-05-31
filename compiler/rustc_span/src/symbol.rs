@@ -1485,6 +1485,7 @@ symbols! {
         not,
         notable_trait,
         note,
+        objc_selector,
         object_safe_for_dispatch,
         of,
         off,
