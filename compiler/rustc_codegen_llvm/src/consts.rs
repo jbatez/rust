@@ -569,8 +569,9 @@ impl<'ll> CodegenCx<'ll, '_> {
         self.compiler_used_statics.push(global);
     }
 
-    pub(crate) fn objc_selref(&mut self, methname: &str) -> &'ll Value {
-        self.objc_selrefs.get(methname).copied().unwrap_or_else(|| {
+    pub(crate) fn get_objc_selref(&self, methname: &str) -> &'ll Value {
+        let mut selrefs = self.objc_selrefs.borrow_mut();
+        selrefs.get(methname).copied().unwrap_or_else(|| {
             let methname_llval = self.null_terminate_const_bytes(methname.as_bytes());
             let methname_llty = self.val_ty(methname_llval);
             let methname_sym = self.generate_local_symbol_name("OBJC_METH_VAR_NAME_");
@@ -585,7 +586,6 @@ impl<'ll> CodegenCx<'ll, '_> {
                 llvm::LLVMSetUnnamedAddress(methname_g, llvm::UnnamedAddr::Global);
             }
             llvm::set_linkage(methname_g, llvm::Linkage::PrivateLinkage);
-            self.add_compiler_used_global(methname_g);
 
             let selref_llval = methname_g;
             let selref_llty = self.val_ty(selref_llval);
@@ -593,12 +593,11 @@ impl<'ll> CodegenCx<'ll, '_> {
             let selref_g = self.define_global(&selref_sym, selref_llty).unwrap_or_else(|| {
                 bug!("symbol `{}` is already defined", selref_sym);
             });
-            llvm::set_section(selref_g, c"__DATA,__objc_selrefs,literal_pointers,no_dead_strip");
+            llvm::set_section(selref_g, c"__DATA,__objc_selrefs,literal_pointers");
             llvm::set_initializer(selref_g, selref_llval);
             llvm::set_linkage(selref_g, llvm::Linkage::InternalLinkage);
-            self.add_compiler_used_global(selref_g);
 
-            self.objc_selrefs.insert(methname.to_owned(), selref_g);
+            selrefs.insert(methname.to_owned(), selref_g);
             selref_g
         })
     }

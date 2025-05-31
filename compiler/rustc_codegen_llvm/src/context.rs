@@ -149,7 +149,7 @@ pub(crate) struct FullCx<'ll, 'tcx> {
     pub renamed_statics: RefCell<FxHashMap<DefId, &'ll Value>>,
 
     /// Cache of Objective-C selector references
-    pub objc_selrefs: FxHashMap<String, &'ll Value>,
+    pub objc_selrefs: RefCell<FxHashMap<String, &'ll Value>>,
 }
 
 fn to_llvm_tls_model(tls_model: TlsModel) -> llvm::ThreadLocalMode {
