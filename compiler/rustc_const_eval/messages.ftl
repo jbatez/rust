@@ -285,6 +285,9 @@ const_eval_not_enough_caller_args =
 const_eval_nullary_intrinsic_fail =
     could not evaluate nullary intrinsic
 
+const_eval_objc_selector =
+    Objective-C selectors cannot be evaluated at compile-time
+
 const_eval_offset_from_different_allocations =
     `{$name}` called on two different pointers that are not both derived from the same allocation
 const_eval_offset_from_out_of_bounds =
@@ -504,6 +507,3 @@ const_eval_write_through_immutable_pointer =
 
 const_eval_write_to_read_only =
     writing to {$allocation} which is read-only
-
-const_eval_objc_selector =
-    Objective-C selectors cannot be evaluated at compile-time
