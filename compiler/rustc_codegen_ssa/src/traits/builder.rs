@@ -568,4 +568,6 @@ pub trait BuilderMethods<'a, 'tcx>:
     fn zext(&mut self, val: Self::Value, dest_ty: Self::Type) -> Self::Value;
 
     fn apply_attrs_to_cleanup_callsite(&mut self, llret: Self::Value);
+
+    fn objc_selector(&mut self, methname: &str) -> Self::Value;
 }

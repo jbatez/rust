@@ -1447,6 +1447,12 @@ impl<'a, 'll, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'll, 'tcx> {
         let cold_inline = llvm::AttributeKind::Cold.create_attr(self.llcx);
         attributes::apply_to_callsite(llret, llvm::AttributePlace::Function, &[cold_inline]);
     }
+
+    fn objc_selector(&mut self, methname: &str) -> &'ll Value {
+        let selref = self.get_objc_selref(methname);
+        let align = self.tcx.data_layout.pointer_align.abi;
+        self.load(self.type_ptr(), selref, align)
+    }
 }
 
 impl<'ll> StaticBuilderMethods for Builder<'_, 'll, '_> {
