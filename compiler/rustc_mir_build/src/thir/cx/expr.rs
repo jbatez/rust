@@ -931,6 +931,7 @@ impl<'tcx> ThirBuildCx<'tcx> {
             hir::ExprKind::Tup(fields) => ExprKind::Tuple { fields: self.mirror_exprs(fields) },
 
             hir::ExprKind::Yield(v, _) => ExprKind::Yield { value: self.mirror_expr(v) },
+            hir::ExprKind::ObjcSelector(methname) => ExprKind::ObjcSelector(methname),
             hir::ExprKind::Err(_) => unreachable!("cannot lower a `hir::ExprKind::Err` to THIR"),
         };
 

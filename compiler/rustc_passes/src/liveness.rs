@@ -446,6 +446,7 @@ impl<'tcx> Visitor<'tcx> for IrMaps<'tcx> {
             | hir::ExprKind::OffsetOf(..)
             | hir::ExprKind::Type(..)
             | hir::ExprKind::UnsafeBinderCast(..)
+            | hir::ExprKind::ObjcSelector(_)
             | hir::ExprKind::Err(_)
             | hir::ExprKind::Path(hir::QPath::TypeRelative(..))
             | hir::ExprKind::Path(hir::QPath::LangItem(..)) => {}
@@ -1164,7 +1165,8 @@ impl<'a, 'tcx> Liveness<'a, 'tcx> {
             | hir::ExprKind::Err(_)
             | hir::ExprKind::Path(hir::QPath::TypeRelative(..))
             | hir::ExprKind::Path(hir::QPath::LangItem(..))
-            | hir::ExprKind::OffsetOf(..) => succ,
+            | hir::ExprKind::OffsetOf(..)
+            | hir::ExprKind::ObjcSelector(..) => succ,
 
             // Note that labels have been resolved, so we don't need to look
             // at the label ident
@@ -1456,6 +1458,7 @@ fn check_expr<'tcx>(this: &mut Liveness<'_, 'tcx>, expr: &'tcx Expr<'tcx>) {
         | hir::ExprKind::Yield(..)
         | hir::ExprKind::Type(..)
         | hir::ExprKind::UnsafeBinderCast(..)
+        | hir::ExprKind::ObjcSelector(_)
         | hir::ExprKind::Err(_) => {}
     }
 }

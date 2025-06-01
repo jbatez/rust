@@ -196,6 +196,9 @@ fn is_temporary_rvalue(expr: &Expr<'_>) -> bool {
 
         ExprKind::UnsafeBinderCast(..) => false,
 
+        // Objective-C selectors are rvalues.
+        ExprKind::ObjcSelector(..) => true,
+
         // Not applicable
         ExprKind::Type(..) | ExprKind::Err(..) => false,
     }

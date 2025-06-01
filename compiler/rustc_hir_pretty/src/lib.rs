@@ -1671,6 +1671,11 @@ impl<'a> State<'a> {
                 self.word_space("yield");
                 self.print_expr_cond_paren(expr, expr.precedence() < ExprPrecedence::Jump);
             }
+            hir::ExprKind::ObjcSelector(methname) => {
+                self.word("objc::selector!(");
+                self.word(methname.to_string());
+                self.word(")");
+            }
             hir::ExprKind::Err(_) => {
                 self.popen();
                 self.word("/*ERROR*/");

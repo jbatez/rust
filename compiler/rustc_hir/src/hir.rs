@@ -2329,6 +2329,7 @@ impl Expr<'_> {
             | ExprKind::Type(..)
             | ExprKind::UnsafeBinderCast(..)
             | ExprKind::Use(..)
+            | ExprKind::ObjcSelector(_)
             | ExprKind::Err(_) => ExprPrecedence::Unambiguous,
 
             ExprKind::DropTemps(expr, ..) => expr.precedence(),
@@ -2402,6 +2403,7 @@ impl Expr<'_> {
             | ExprKind::Yield(..)
             | ExprKind::Cast(..)
             | ExprKind::DropTemps(..)
+            | ExprKind::ObjcSelector(_)
             | ExprKind::Err(_) => false,
         }
     }
@@ -2449,9 +2451,12 @@ impl Expr<'_> {
 
     pub fn can_have_side_effects(&self) -> bool {
         match self.peel_drop_temps().kind {
-            ExprKind::Path(_) | ExprKind::Lit(_) | ExprKind::OffsetOf(..) | ExprKind::Use(..) => {
-                false
-            }
+            ExprKind::Path(_)
+            | ExprKind::Lit(_)
+            | ExprKind::OffsetOf(..)
+            | ExprKind::Use(..)
+            | ExprKind::ObjcSelector(_) => false,
+
             ExprKind::Type(base, _)
             | ExprKind::Unary(_, base)
             | ExprKind::Field(base, _)
@@ -2817,6 +2822,9 @@ pub enum ExprKind<'hir> {
     /// Operators which can be used to interconvert `unsafe` binder types.
     /// e.g. `unsafe<'a> &'a i32` <=> `&i32`.
     UnsafeBinderCast(UnsafeBinderCastKind, &'hir Expr<'hir>, Option<&'hir Ty<'hir>>),
+
+    /// An Objective-C selector, e.g. `objc::selector!(methodName)`.
+    ObjcSelector(Symbol),
 
     /// A placeholder for an expression that wasn't syntactically well formed in some way.
     Err(rustc_span::ErrorGuaranteed),

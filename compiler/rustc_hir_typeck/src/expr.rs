@@ -387,6 +387,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
                     | ExprKind::Path(_)
                     | ExprKind::Continue(_)
                     | ExprKind::OffsetOf(_, _)
+                    | ExprKind::ObjcSelector(_)
                     | ExprKind::Err(_) => unreachable!("no sub-expr expected for {:?}", expr.kind),
                 }
             }
@@ -577,6 +578,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
             ExprKind::UnsafeBinderCast(kind, inner_expr, ty) => {
                 self.check_expr_unsafe_binder_cast(expr.span, kind, inner_expr, ty, expected)
             }
+            ExprKind::ObjcSelector(_) => self.check_expr_objc_selector(expr.span),
             ExprKind::Err(guar) => Ty::new_error(tcx, guar),
         }
     }
@@ -3980,5 +3982,10 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
             .insert(expr.hir_id, (container, field_indices));
 
         self.tcx.types.usize
+    }
+
+    fn check_expr_objc_selector(&self, span: Span) -> Ty<'tcx> {
+        let lang_item = self.tcx.require_lang_item(hir::LangItem::ObjcSelector, Some(span));
+        Ty::new_mut_ptr(self.tcx, self.tcx.type_of(lang_item).skip_binder())
     }
 }

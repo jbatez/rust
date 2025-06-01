@@ -510,6 +510,7 @@ impl<'tcx, Cx: TypeInformationCtxt<'tcx>, D: Delegate<'tcx>> ExprUseVisitor<'tcx
             | hir::ExprKind::Lit(..)
             | hir::ExprKind::ConstBlock(..)
             | hir::ExprKind::OffsetOf(..)
+            | hir::ExprKind::ObjcSelector(..)
             | hir::ExprKind::Err(_) => {}
 
             hir::ExprKind::Loop(blk, ..) => {
@@ -1437,6 +1438,7 @@ impl<'tcx, Cx: TypeInformationCtxt<'tcx>, D: Delegate<'tcx>> ExprUseVisitor<'tcx
             | hir::ExprKind::InlineAsm(..)
             | hir::ExprKind::OffsetOf(..)
             | hir::ExprKind::UnsafeBinderCast(UnsafeBinderCastKind::Wrap, ..)
+            | hir::ExprKind::ObjcSelector(..)
             | hir::ExprKind::Err(_) => Ok(self.cat_rvalue(expr.hir_id, expr_ty)),
         }
     }

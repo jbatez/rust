@@ -187,7 +187,8 @@ impl CheckInlineAssembly {
             | ExprKind::Become(..)
             | ExprKind::Struct(..)
             | ExprKind::Repeat(..)
-            | ExprKind::Yield(..) => {
+            | ExprKind::Yield(..)
+            | ExprKind::ObjcSelector(..) => {
                 self.items.push((ItemKind::NonAsm, span));
             }
 

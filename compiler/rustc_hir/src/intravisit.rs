@@ -504,6 +504,9 @@ pub trait Visitor<'v>: Sized {
     fn visit_inline_asm(&mut self, asm: &'v InlineAsm<'v>, id: HirId) -> Self::Result {
         walk_inline_asm(self, asm, id)
     }
+    fn visit_objc_selector(&mut self, _hir_id: HirId, _methname: Symbol) -> Self::Result {
+        Self::Result::output()
+    }
 }
 
 pub trait VisitorExt<'v>: Visitor<'v> {
@@ -920,6 +923,9 @@ pub fn walk_expr<'v, V: Visitor<'v>>(visitor: &mut V, expression: &'v Expr<'v>) 
             visit_opt!(visitor, visit_ty_unambig, ty);
         }
         ExprKind::Lit(lit) => try_visit!(visitor.visit_lit(expression.hir_id, lit, false)),
+        ExprKind::ObjcSelector(methname) => {
+            try_visit!(visitor.visit_objc_selector(expression.hir_id, methname))
+        }
         ExprKind::Err(_) => {}
     }
     V::Result::output()
