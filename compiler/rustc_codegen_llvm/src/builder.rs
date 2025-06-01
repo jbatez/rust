@@ -23,7 +23,7 @@ use rustc_middle::ty::layout::{
 use rustc_middle::ty::{self, Instance, Ty, TyCtxt};
 use rustc_sanitizers::{cfi, kcfi};
 use rustc_session::config::OptLevel;
-use rustc_span::Span;
+use rustc_span::{Span, Symbol};
 use rustc_target::callconv::FnAbi;
 use rustc_target::spec::{HasTargetSpec, SanitizerSet, Target};
 use smallvec::SmallVec;
@@ -1448,7 +1448,7 @@ impl<'a, 'll, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'll, 'tcx> {
         attributes::apply_to_callsite(llret, llvm::AttributePlace::Function, &[cold_inline]);
     }
 
-    fn objc_selector(&mut self, methname: &str) -> &'ll Value {
+    fn objc_selector(&mut self, methname: Symbol) -> &'ll Value {
         let selref = self.get_objc_selref(methname);
         let align = self.tcx.data_layout.pointer_align.abi;
         self.load(self.type_ptr(), selref, align)

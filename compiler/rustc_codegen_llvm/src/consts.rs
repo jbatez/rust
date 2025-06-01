@@ -17,6 +17,7 @@ use rustc_middle::mir::mono::{Linkage, MonoItem};
 use rustc_middle::ty::layout::{HasTypingEnv, LayoutOf};
 use rustc_middle::ty::{self, Instance};
 use rustc_middle::{bug, span_bug};
+use rustc_span::Symbol;
 use tracing::{debug, instrument, trace};
 
 use crate::common::{AsCCharPtr, CodegenCx};
@@ -569,10 +570,10 @@ impl<'ll> CodegenCx<'ll, '_> {
         self.compiler_used_statics.push(global);
     }
 
-    pub(crate) fn get_objc_selref(&self, methname: &str) -> &'ll Value {
+    pub(crate) fn get_objc_selref(&self, methname: Symbol) -> &'ll Value {
         let mut selrefs = self.objc_selrefs.borrow_mut();
-        selrefs.get(methname).copied().unwrap_or_else(|| {
-            let methname_llval = self.null_terminate_const_bytes(methname.as_bytes());
+        selrefs.get(&methname).copied().unwrap_or_else(|| {
+            let methname_llval = self.null_terminate_const_bytes(methname.as_str().as_bytes());
             let methname_llty = self.val_ty(methname_llval);
             let methname_sym = self.generate_local_symbol_name("OBJC_METH_VAR_NAME_");
             let methname_g =
@@ -606,7 +607,7 @@ impl<'ll> CodegenCx<'ll, '_> {
                 llvm::set_section(selref_g, c"__DATA,__objc_selrefs,literal_pointers");
             }
 
-            selrefs.insert(methname.to_owned(), selref_g);
+            selrefs.insert(methname, selref_g);
             selref_g
         })
     }

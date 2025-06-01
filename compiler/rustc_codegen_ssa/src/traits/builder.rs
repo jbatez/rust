@@ -6,7 +6,7 @@ use rustc_middle::middle::codegen_fn_attrs::CodegenFnAttrs;
 use rustc_middle::ty::layout::{FnAbiOf, LayoutOf, TyAndLayout};
 use rustc_middle::ty::{AtomicOrdering, Instance, Ty};
 use rustc_session::config::OptLevel;
-use rustc_span::Span;
+use rustc_span::{Span, Symbol};
 use rustc_target::callconv::FnAbi;
 
 use super::abi::AbiBuilderMethods;
@@ -569,5 +569,5 @@ pub trait BuilderMethods<'a, 'tcx>:
 
     fn apply_attrs_to_cleanup_callsite(&mut self, llret: Self::Value);
 
-    fn objc_selector(&mut self, methname: &str) -> Self::Value;
+    fn objc_selector(&mut self, methname: Symbol) -> Self::Value;
 }
