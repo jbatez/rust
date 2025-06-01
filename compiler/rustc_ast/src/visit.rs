@@ -1481,6 +1481,7 @@ pub fn walk_expr<'a, V: Visitor<'a>>(visitor: &mut V, expression: &'a Expr) -> V
             try_visit!(visitor.visit_expr(expr));
             visit_opt!(visitor, visit_ty, ty);
         }
+        ExprKind::ObjcSelector(_methname) => {}
         ExprKind::Err(_guar) => {}
         ExprKind::Dummy => {}
     }

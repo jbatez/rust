@@ -154,6 +154,7 @@ pub fn leading_labeled_expr(mut expr: &ast::Expr) -> bool {
             | Yeet(..)
             | Yield(..)
             | UnsafeBinderCast(..)
+            | ObjcSelector(..)
             | Err(..)
             | Dummy => return false,
         }
@@ -238,6 +239,7 @@ pub fn expr_trailing_brace(mut expr: &ast::Expr) -> Option<TrailingBrace<'_>> {
             | Try(_)
             | Yeet(None)
             | UnsafeBinderCast(..)
+            | ObjcSelector(_)
             | Err(_)
             | Dummy => {
                 break None;

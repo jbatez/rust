@@ -375,6 +375,8 @@ impl<'hir> LoweringContext<'_, 'hir> {
                 }
 
                 ExprKind::MacCall(_) => panic!("{:?} shouldn't exist here", e.span),
+
+                ExprKind::ObjcSelector(methname) => hir::ExprKind::ObjcSelector(*methname),
             };
 
             hir::Expr { hir_id: expr_hir_id, kind, span: self.lower_span(e.span) }

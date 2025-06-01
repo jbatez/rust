@@ -809,6 +809,12 @@ impl<'a> State<'a> {
                 self.end(ib);
                 self.pclose();
             }
+            ast::ExprKind::ObjcSelector(methname) => {
+                self.word("builtin # objc_selector");
+                self.popen();
+                self.word(methname.to_string());
+                self.pclose();
+            }
             ast::ExprKind::Err(_) => {
                 self.popen();
                 self.word("/*ERROR*/");

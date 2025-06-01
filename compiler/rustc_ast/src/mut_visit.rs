@@ -1335,6 +1335,7 @@ pub fn walk_expr<T: MutVisitor>(vis: &mut T, Expr { kind, id, span, attrs, token
                 vis.visit_ty(ty);
             }
         }
+        ExprKind::ObjcSelector(_methname) => {}
         ExprKind::Err(_guar) => {}
         ExprKind::Dummy => {}
     }

@@ -1507,6 +1507,7 @@ impl Expr {
             | ExprKind::Underscore
             | ExprKind::UnsafeBinderCast(..)
             | ExprKind::While(..)
+            | ExprKind::ObjcSelector(_)
             | ExprKind::Err(_)
             | ExprKind::Dummy => ExprPrecedence::Unambiguous,
         }
@@ -1772,6 +1773,9 @@ pub enum ExprKind {
     FormatArgs(P<FormatArgs>),
 
     UnsafeBinderCast(UnsafeBinderCastKind, P<Expr>, Option<P<Ty>>),
+
+    /// An Objective-C selector, e.g. `objc::selector!(methodName)`.
+    ObjcSelector(Symbol),
 
     /// Placeholder for an expression that wasn't syntactically well formed in some way.
     Err(ErrorGuaranteed),

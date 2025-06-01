@@ -323,7 +323,8 @@ impl<'cx, 'a> Context<'cx, 'a> {
             | ExprKind::Yeet(_)
             | ExprKind::Become(_)
             | ExprKind::Yield(_)
-            | ExprKind::UnsafeBinderCast(..) => {}
+            | ExprKind::UnsafeBinderCast(..)
+            | ExprKind::ObjcSelector(_) => {}
         }
     }
 
