@@ -201,6 +201,7 @@ fn check_rvalue<'tcx>(
             }
             Ok(())
         },
+        Rvalue::ObjcSelector(_, _) => Err((span, "Objective-C selectors are not allowed in const fn".into())),
     }
 }
 

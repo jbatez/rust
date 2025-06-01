@@ -213,7 +213,7 @@ pub fn expr_trailing_brace(mut expr: &ast::Expr) -> Option<TrailingBrace<'_>> {
                 break (mac.args.delim == Delimiter::Brace).then_some(TrailingBrace::MacCall(mac));
             }
 
-            InlineAsm(_) | OffsetOf(_, _) | IncludedBytes(_) | FormatArgs(_) => {
+            InlineAsm(_) | OffsetOf(_, _) | IncludedBytes(_) | FormatArgs(_) | ObjcSelector(_) => {
                 // These should have been denied pre-expansion.
                 break None;
             }
@@ -239,7 +239,6 @@ pub fn expr_trailing_brace(mut expr: &ast::Expr) -> Option<TrailingBrace<'_>> {
             | Try(_)
             | Yeet(None)
             | UnsafeBinderCast(..)
-            | ObjcSelector(_)
             | Err(_)
             | Dummy => {
                 break None;

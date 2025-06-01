@@ -666,6 +666,9 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
             ExprKind::UnsafeBinderCast(..) => {
                 unimplemented!("unsafe binders are not implemented yet");
             },
+            ExprKind::ObjcSelector(_) => {
+                unimplemented!("Objective-C selectors are not implemented yet");
+            },
         }
     }
 

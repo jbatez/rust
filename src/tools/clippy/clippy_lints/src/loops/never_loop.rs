@@ -279,6 +279,7 @@ fn never_loop_expr<'tcx>(
         | ExprKind::Path(_)
         | ExprKind::ConstBlock(_)
         | ExprKind::Lit(_)
+        | ExprKind::ObjcSelector(_)
         | ExprKind::Err(_) => NeverLoopResult::Normal,
     };
     let result = combine_seq(result, || {

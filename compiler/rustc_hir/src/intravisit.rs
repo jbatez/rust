@@ -924,7 +924,7 @@ pub fn walk_expr<'v, V: Visitor<'v>>(visitor: &mut V, expression: &'v Expr<'v>) 
         }
         ExprKind::Lit(lit) => try_visit!(visitor.visit_lit(expression.hir_id, lit, false)),
         ExprKind::ObjcSelector(methname) => {
-            try_visit!(visitor.visit_objc_selector(expression.hir_id, methname))
+            try_visit!(visitor.visit_objc_selector(expression.hir_id, methname));
         }
         ExprKind::Err(_) => {}
     }
