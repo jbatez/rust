@@ -1394,7 +1394,8 @@ impl<'a, 'tcx> Visitor<'tcx> for TypeChecker<'a, 'tcx> {
                 NullOp::SizeOf | NullOp::AlignOf | NullOp::UbChecks | NullOp::ContractChecks,
                 _,
             )
-            | Rvalue::Discriminant(_) => {}
+            | Rvalue::Discriminant(_)
+            | Rvalue::ObjcSelector(_, _) => {}
 
             Rvalue::WrapUnsafeBinder(op, ty) => {
                 let unwrapped_ty = op.ty(self.body, self.tcx);

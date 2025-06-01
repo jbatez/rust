@@ -1650,7 +1650,8 @@ impl<'a, 'tcx> Visitor<'tcx> for TypeChecker<'a, 'tcx> {
             | Rvalue::ThreadLocalRef(..)
             | Rvalue::Len(..)
             | Rvalue::Discriminant(..)
-            | Rvalue::NullaryOp(NullOp::OffsetOf(..), _) => {}
+            | Rvalue::NullaryOp(NullOp::OffsetOf(..), _)
+            | Rvalue::ObjcSelector(..) => {}
         }
     }
 
@@ -2231,7 +2232,8 @@ impl<'a, 'tcx> TypeChecker<'a, 'tcx> {
             | Rvalue::CopyForDeref(..)
             | Rvalue::UnaryOp(..)
             | Rvalue::Discriminant(..)
-            | Rvalue::WrapUnsafeBinder(..) => None,
+            | Rvalue::WrapUnsafeBinder(..)
+            | Rvalue::ObjcSelector(..) => None,
 
             Rvalue::Aggregate(aggregate, _) => match **aggregate {
                 AggregateKind::Adt(_, _, _, user_ty, _) => user_ty,

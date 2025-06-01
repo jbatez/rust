@@ -471,6 +471,13 @@ pub struct ValidationFailure {
     pub raw_bytes: RawBytesNote,
 }
 
+#[derive(Diagnostic)]
+#[diag(const_eval_objc_selector)]
+pub(crate) struct ObjcSelectorErr {
+    #[primary_span]
+    pub span: Span,
+}
+
 pub trait ReportErrorExt {
     /// Returns the diagnostic message for this error.
     fn diagnostic_message(&self) -> DiagMessage;

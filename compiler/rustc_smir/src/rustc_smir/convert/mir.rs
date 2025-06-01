@@ -219,6 +219,7 @@ impl<'tcx> Stable<'tcx> for mir::Rvalue<'tcx> {
             }
             CopyForDeref(place) => stable_mir::mir::Rvalue::CopyForDeref(place.stable(tables)),
             WrapUnsafeBinder(..) => todo!("FIXME(unsafe_binders):"),
+            ObjcSelector(..) => todo!("FIXME(core_ffi_objc):"),
         }
     }
 }

@@ -584,7 +584,8 @@ impl WriteInfo {
                     | Rvalue::RawPtr(_, _)
                     | Rvalue::Len(_)
                     | Rvalue::Discriminant(_)
-                    | Rvalue::CopyForDeref(_) => {}
+                    | Rvalue::CopyForDeref(_)
+                    | Rvalue::ObjcSelector(_, _) => {}
                 }
             }
             // Retags are technically also reads, but reporting them as a write suffices

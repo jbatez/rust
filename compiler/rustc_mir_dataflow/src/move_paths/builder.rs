@@ -422,7 +422,8 @@ impl<'a, 'tcx, F: Fn(Ty<'tcx>) -> bool> MoveDataBuilder<'a, 'tcx, F> {
                 | NullOp::UbChecks
                 | NullOp::ContractChecks,
                 _,
-            ) => {}
+            )
+            | Rvalue::ObjcSelector(..) => {}
         }
     }
 

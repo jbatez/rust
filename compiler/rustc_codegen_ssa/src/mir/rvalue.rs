@@ -848,6 +848,12 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
                 let layout = bx.cx().layout_of(binder_ty);
                 OperandRef { val: operand.val, layout }
             }
+            mir::Rvalue::ObjcSelector(methname, ty) => {
+                let ty = self.monomorphize(ty);
+                let layout = bx.cx().layout_of(ty);
+                let val = OperandValue::Immediate(bx.objc_selector(methname));
+                OperandRef { val, layout }
+            }
         }
     }
 
@@ -1154,7 +1160,8 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
             mir::Rvalue::NullaryOp(..) |
             mir::Rvalue::ThreadLocalRef(_) |
             mir::Rvalue::Use(..) |
-            mir::Rvalue::WrapUnsafeBinder(..) => // (*)
+            mir::Rvalue::WrapUnsafeBinder(..) |
+            mir::Rvalue::ObjcSelector(..) => // (*)
                 true,
             // Arrays are always aggregates, so it's not worth checking anything here.
             // (If it's really `[(); N]` or `[T; 0]` and we use the place path, fine.)

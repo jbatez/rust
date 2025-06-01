@@ -504,3 +504,6 @@ const_eval_write_through_immutable_pointer =
 
 const_eval_write_to_read_only =
     writing to {$allocation} which is read-only
+
+const_eval_objc_selector =
+    Objective-C selectors cannot be evaluated at compile-time

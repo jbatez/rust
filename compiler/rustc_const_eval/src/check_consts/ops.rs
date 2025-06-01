@@ -668,3 +668,12 @@ impl<'tcx> NonConstOp<'tcx> for ThreadLocalAccess {
         ccx.dcx().create_err(errors::ThreadLocalAccessErr { span })
     }
 }
+
+/// An Objective-C selector.
+#[derive(Debug)]
+pub(crate) struct ObjcSelector;
+impl<'tcx> NonConstOp<'tcx> for ObjcSelector {
+    fn build_error(&self, ccx: &ConstCx<'_, 'tcx>, span: Span) -> Diag<'tcx> {
+        ccx.dcx().create_err(errors::ObjcSelectorErr { span })
+    }
+}

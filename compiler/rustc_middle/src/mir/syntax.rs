@@ -1500,6 +1500,9 @@ pub enum Rvalue<'tcx> {
 
     /// Wraps a value in an unsafe binder.
     WrapUnsafeBinder(Operand<'tcx>, Ty<'tcx>),
+
+    /// Loads an Objective-C selector.
+    ObjcSelector(Symbol, Ty<'tcx>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, TyEncodable, TyDecodable, Hash, HashStable)]

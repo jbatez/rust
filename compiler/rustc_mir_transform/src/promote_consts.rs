@@ -602,6 +602,8 @@ impl<'tcx> Validator<'_, 'tcx> {
                     self.validate_operand(o)?;
                 }
             }
+
+            Rvalue::ObjcSelector(_, _) => return Err(Unpromotable),
         }
 
         Ok(())

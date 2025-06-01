@@ -1536,6 +1536,8 @@ impl<'a, 'tcx> MirBorrowckCtxt<'a, '_, 'tcx> {
             Rvalue::WrapUnsafeBinder(op, _) => {
                 self.consume_operand(location, (op, span), state);
             }
+
+            Rvalue::ObjcSelector(_, _) => {}
         }
     }
 
