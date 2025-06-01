@@ -579,23 +579,32 @@ impl<'ll> CodegenCx<'ll, '_> {
                 self.define_global(&methname_sym, methname_llty).unwrap_or_else(|| {
                     bug!("symbol `{}` is already defined", methname_sym);
                 });
-            llvm::set_section(methname_g, c"__TEXT,__objc_methname,cstring_literals");
             llvm::set_initializer(methname_g, methname_llval);
+            llvm::set_linkage(methname_g, llvm::Linkage::PrivateLinkage);
+            if self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos" {
+                llvm::set_section(methname_g, c"__TEXT,__cstring,cstring_literals");
+            } else {
+                llvm::set_section(methname_g, c"__TEXT,__objc_methname,cstring_literals");
+            }
             unsafe {
                 llvm::LLVMSetGlobalConstant(methname_g, True);
                 llvm::LLVMSetUnnamedAddress(methname_g, llvm::UnnamedAddr::Global);
             }
-            llvm::set_linkage(methname_g, llvm::Linkage::PrivateLinkage);
 
             let selref_llval = methname_g;
-            let selref_llty = self.val_ty(selref_llval);
+            let selref_llty = self.type_ptr();
             let selref_sym = self.generate_local_symbol_name("OBJC_SELECTOR_REFERENCES_");
             let selref_g = self.define_global(&selref_sym, selref_llty).unwrap_or_else(|| {
                 bug!("symbol `{}` is already defined", selref_sym);
             });
-            llvm::set_section(selref_g, c"__DATA,__objc_selrefs,literal_pointers");
             llvm::set_initializer(selref_g, selref_llval);
-            llvm::set_linkage(selref_g, llvm::Linkage::InternalLinkage);
+            if self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos" {
+                llvm::set_linkage(selref_g, llvm::Linkage::PrivateLinkage);
+                llvm::set_section(selref_g, c"__OBJC,__message_refs,literal_pointers");
+            } else {
+                llvm::set_linkage(selref_g, llvm::Linkage::InternalLinkage);
+                llvm::set_section(selref_g, c"__DATA,__objc_selrefs,literal_pointers");
+            }
 
             selrefs.insert(methname.to_owned(), selref_g);
             selref_g
