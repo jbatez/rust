@@ -580,6 +580,8 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
                 );
                 block.and(Rvalue::Use(operand))
             }
+
+            ExprKind::ObjcSelector(methname) => block.and(Rvalue::ObjcSelector(methname, expr.ty)),
         }
     }
 

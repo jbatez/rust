@@ -365,7 +365,8 @@ impl<'p, 'tcx> MatchVisitor<'p, 'tcx> {
             | UpvarRef { .. }
             | VarRef { .. }
             | ZstLiteral { .. }
-            | Yield { .. } => true,
+            | Yield { .. }
+            | ObjcSelector { .. } => true,
         }
     }
 

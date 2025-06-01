@@ -573,6 +573,11 @@ impl<'a, 'tcx> ThirPrinter<'a, 'tcx> {
                 self.print_expr(*value, depth_lvl + 2);
                 print_indented!(self, "}", depth_lvl);
             }
+            ObjcSelector(methname) => {
+                print_indented!(self, "ObjcSelector {", depth_lvl);
+                print_indented!(self, format!("methname: {:?}", methname), depth_lvl + 1);
+                print_indented!(self, "}", depth_lvl);
+            }
         }
     }
 

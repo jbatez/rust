@@ -558,6 +558,8 @@ pub enum ExprKind<'tcx> {
     Yield {
         value: ExprId,
     },
+    /// An Objective-C selector, e.g. `objc::selector!(methodName)`.
+    ObjcSelector(Symbol),
 }
 
 /// Represents the association of a field identifier and an expression.

@@ -72,7 +72,8 @@ impl Category {
             | ExprKind::AssignOp { .. }
             | ExprKind::ThreadLocalRef(_)
             | ExprKind::OffsetOf { .. }
-            | ExprKind::WrapUnsafeBinder { .. } => Some(Category::Rvalue(RvalueFunc::AsRvalue)),
+            | ExprKind::WrapUnsafeBinder { .. }
+            | ExprKind::ObjcSelector(_) => Some(Category::Rvalue(RvalueFunc::AsRvalue)),
 
             ExprKind::ConstBlock { .. }
             | ExprKind::Literal { .. }

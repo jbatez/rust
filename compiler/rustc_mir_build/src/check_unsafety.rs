@@ -471,7 +471,8 @@ impl<'a, 'tcx> Visitor<'a, 'tcx> for UnsafetyVisitor<'a, 'tcx> {
             | ExprKind::InlineAsm { .. }
             | ExprKind::OffsetOf { .. }
             | ExprKind::LogicalOp { .. }
-            | ExprKind::Use { .. } => {
+            | ExprKind::Use { .. }
+            | ExprKind::ObjcSelector { .. } => {
                 // We don't need to save the old value and restore it
                 // because all the place expressions can't have more
                 // than one child.
