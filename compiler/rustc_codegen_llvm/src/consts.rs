@@ -580,6 +580,7 @@ impl<'ll> CodegenCx<'ll, '_> {
                 self.define_global(&methname_sym, methname_llty).unwrap_or_else(|| {
                     bug!("symbol `{}` is already defined", methname_sym);
                 });
+            set_global_alignment(self, methname_g, self.tcx.data_layout.i8_align.abi);
             llvm::set_initializer(methname_g, methname_llval);
             llvm::set_linkage(methname_g, llvm::Linkage::PrivateLinkage);
             if self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos" {
@@ -598,6 +599,7 @@ impl<'ll> CodegenCx<'ll, '_> {
             let selref_g = self.define_global(&selref_sym, selref_llty).unwrap_or_else(|| {
                 bug!("symbol `{}` is already defined", selref_sym);
             });
+            set_global_alignment(self, selref_g, self.tcx.data_layout.pointer_align.abi);
             llvm::set_initializer(selref_g, selref_llval);
             if self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos" {
                 llvm::set_linkage(selref_g, llvm::Linkage::PrivateLinkage);
