@@ -29,3 +29,9 @@ impl fmt::Debug for objc_selector {
 
 /// Equivalent to Objective-C’s `SEL` type.
 pub type SEL = *mut objc_selector;
+
+/// Equivalent to Objective-C’s `@selector` directive.
+#[allow_internal_unstable(builtin_syntax)]
+pub macro selector($($t:tt)*) {
+    builtin # objc_selector ( $($t)* )
+}

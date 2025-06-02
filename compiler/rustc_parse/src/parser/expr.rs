@@ -1959,6 +1959,7 @@ impl<'a> Parser<'a> {
                 sym::unwrap_binder => {
                     Some(this.parse_expr_unsafe_binder_cast(lo, UnsafeBinderCastKind::Unwrap)?)
                 }
+                sym::objc_selector => Some(this.parse_expr_objc_selector(lo)?),
                 _ => None,
             })
         })
@@ -2041,6 +2042,57 @@ impl<'a> Parser<'a> {
         let ty = if self.eat(exp!(Comma)) { Some(self.parse_ty()?) } else { None };
         let span = lo.to(self.token.span);
         Ok(self.mk_expr(span, ExprKind::UnsafeBinderCast(kind, expr, ty)))
+    }
+
+    // An Objective-C selector method name can either be a single identifier
+    // or a series of lone colons and identifiers followed by colons.
+    pub(crate) fn parse_expr_objc_selector(&mut self, lo: Span) -> PResult<'a, P<Expr>> {
+        let mut methname = String::new();
+        loop {
+            let (expect_ident, may_terminate) = if let Some((ident, _)) = self.token.ident() {
+                let expect_ident = false;
+                // The method name may terminate after a single identifier.
+                // Every other identifier requires a trailing colon.
+                let may_terminate = methname.is_empty();
+                methname.push_str(ident.as_str());
+                self.bump();
+                (expect_ident, may_terminate)
+            } else {
+                let expect_ident = true;
+                let may_terminate = !methname.is_empty();
+                (expect_ident, may_terminate)
+            };
+
+            match self.token.kind {
+                TokenKind::Colon => {
+                    methname.push(':');
+                    self.bump();
+                }
+                TokenKind::PathSep => {
+                    methname.push_str("::");
+                    self.bump();
+                }
+                TokenKind::CloseParen if may_terminate => {
+                    let span = lo.to(self.token.span);
+                    let methname = Symbol::intern(&methname);
+                    return Ok(self.mk_expr(span, ExprKind::ObjcSelector(methname)));
+                }
+                _ => {
+                    let expected = match (expect_ident, may_terminate) {
+                        (true, true) => "an identifier, `:`, or `)`",
+                        (true, false) => "an identifier or `:`",
+                        (false, true) => "one of `:` or `)`",
+                        (false, false) => "`:`",
+                    };
+                    let found = super::token_descr(&self.token);
+                    let label = format!("expected {expected}");
+                    let msg = format!("{label}, found {found}");
+                    let mut err = self.dcx().struct_span_err(self.token.span, msg);
+                    err.span_label(self.token.span, label);
+                    return Err(err);
+                }
+            }
+        }
     }
 
     /// Returns a string literal if the next token is a string literal.
