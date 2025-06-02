@@ -2049,18 +2049,18 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_expr_objc_selector(&mut self, lo: Span) -> PResult<'a, P<Expr>> {
         let mut methname = String::new();
         loop {
-            let (expect_ident, may_terminate) = if let Some((ident, _)) = self.token.ident() {
-                let expect_ident = false;
+            let (ident_span, may_terminate) = if let Some((ident, _)) = self.token.ident() {
+                let ident_span = Some(self.token.span);
                 // The method name may terminate after a single identifier.
                 // Every other identifier requires a trailing colon.
                 let may_terminate = methname.is_empty();
                 methname.push_str(ident.as_str());
                 self.bump();
-                (expect_ident, may_terminate)
+                (ident_span, may_terminate)
             } else {
-                let expect_ident = true;
+                let ident_span = None;
                 let may_terminate = !methname.is_empty();
-                (expect_ident, may_terminate)
+                (ident_span, may_terminate)
             };
 
             match self.token.kind {
@@ -2078,17 +2078,16 @@ impl<'a> Parser<'a> {
                     return Ok(self.mk_expr(span, ExprKind::ObjcSelector(methname)));
                 }
                 _ => {
-                    let expected = match (expect_ident, may_terminate) {
-                        (true, true) => "an identifier, `:`, or `)`",
-                        (true, false) => "an identifier or `:`",
-                        (false, true) => "one of `:` or `)`",
-                        (false, false) => "`:`",
+                    let (span, label) = match ident_span {
+                        None => (self.token.span, "expected an identifier or `:`"),
+                        // The CloseParen after an identifier is usually "in this
+                        // macro invocation", so we point at the identifier instead.
+                        Some(span) => (span, "expected `:` after this identifier"),
                     };
                     let found = super::token_descr(&self.token);
-                    let label = format!("expected {expected}");
                     let msg = format!("{label}, found {found}");
-                    let mut err = self.dcx().struct_span_err(self.token.span, msg);
-                    err.span_label(self.token.span, label);
+                    let mut err = self.dcx().struct_span_err(span, msg);
+                    err.span_label(span, label);
                     return Err(err);
                 }
             }
