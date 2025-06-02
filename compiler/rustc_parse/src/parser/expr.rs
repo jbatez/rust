@@ -2044,23 +2044,35 @@ impl<'a> Parser<'a> {
         Ok(self.mk_expr(span, ExprKind::UnsafeBinderCast(kind, expr, ty)))
     }
 
-    // An Objective-C selector method name can either be a single identifier
-    // or a series of lone colons and identifiers followed by colons.
+    // An Objective-C selector method name can be either
+    // - a single identifier
+    // - a series of colons, each optionally preceded by an identifier
     pub(crate) fn parse_expr_objc_selector(&mut self, lo: Span) -> PResult<'a, P<Expr>> {
         let mut methname = String::new();
         loop {
-            let (ident_span, may_terminate) = if let Some((ident, _)) = self.token.ident() {
-                let ident_span = Some(self.token.span);
-                // The method name may terminate after a single identifier.
-                // Every other identifier requires a trailing colon.
+            let (expect_ident, may_terminate) = if let Some((ident, _)) = self.token.ident() {
+                let expect_ident = false;
+                // The method name may terminate if it's a single identifier.
+                // Every other identifier requires a colon immediately after.
                 let may_terminate = methname.is_empty();
+                if !may_terminate && self.look_ahead(1, |t| t.kind == TokenKind::CloseParen) {
+                    // Since the CloseParen is usually inside a macro invocation,
+                    // we point the error at the identifier instead.
+                    let label = "expected `:` after this identifier";
+                    let msg = format!("{label}, found `)`");
+                    let mut err = self.dcx().struct_span_err(self.token.span, msg);
+                    err.span_label(self.token.span, label);
+                    return Err(err);
+                }
+
                 methname.push_str(ident.as_str());
                 self.bump();
-                (ident_span, may_terminate)
+
+                (expect_ident, may_terminate)
             } else {
-                let ident_span = None;
+                let expect_ident = true;
                 let may_terminate = !methname.is_empty();
-                (ident_span, may_terminate)
+                (expect_ident, may_terminate)
             };
 
             match self.token.kind {
@@ -2078,16 +2090,14 @@ impl<'a> Parser<'a> {
                     return Ok(self.mk_expr(span, ExprKind::ObjcSelector(methname)));
                 }
                 _ => {
-                    let (span, label) = match ident_span {
-                        None => (self.token.span, "expected an identifier or `:`"),
-                        // The CloseParen after an identifier is usually "in this
-                        // macro invocation", so we point at the identifier instead.
-                        Some(span) => (span, "expected `:` after this identifier"),
+                    let label = match expect_ident {
+                        true => "expected an identifier or `:`",
+                        false => "expected `:`",
                     };
                     let found = super::token_descr(&self.token);
                     let msg = format!("{label}, found {found}");
-                    let mut err = self.dcx().struct_span_err(span, msg);
-                    err.span_label(span, label);
+                    let mut err = self.dcx().struct_span_err(self.token.span, msg);
+                    err.span_label(self.token.span, label);
                     return Err(err);
                 }
             }
