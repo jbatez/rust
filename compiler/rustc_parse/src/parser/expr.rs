@@ -2058,10 +2058,9 @@ impl<'a> Parser<'a> {
                 if !may_terminate && self.look_ahead(1, |t| t.kind == TokenKind::CloseParen) {
                     // Since the CloseParen is usually inside a macro invocation,
                     // we point the error at the identifier instead.
-                    let label = "expected `:` after this identifier";
-                    let msg = format!("{label}, found `)`");
+                    let msg = "expected `:` after this identifier";
                     let mut err = self.dcx().struct_span_err(self.token.span, msg);
-                    err.span_label(self.token.span, label);
+                    err.span_label(self.token.span, msg);
                     return Err(err);
                 }
 
@@ -2091,7 +2090,7 @@ impl<'a> Parser<'a> {
                 }
                 _ => {
                     let label = match expect_ident {
-                        true => "expected an identifier or `:`",
+                        true => "expected identifier or `:`",
                         false => "expected `:`",
                     };
                     let found = super::token_descr(&self.token);
