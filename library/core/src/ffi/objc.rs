@@ -4,6 +4,7 @@ use crate::fmt;
 
 /// Equivalent to Objective-C’s `struct objc_selector` type.
 #[cfg_attr(not(bootstrap), lang = "objc_selector")]
+#[cfg_attr(not(doc), repr(u8))] // An implementation detail we don't want to show up in rustdoc
 pub enum objc_selector {
     #[unstable(
         feature = "objc_selector_variant",
