@@ -653,6 +653,42 @@ impl<'ll, 'tcx> CodegenCx<'ll, 'tcx> {
         llvm::set_linkage(g, llvm::Linkage::AppendingLinkage);
         llvm::set_section(g, c"llvm.metadata");
     }
+
+    pub(crate) fn add_objc_module_flags(&self) {
+        llvm::add_module_flag_u32(
+            self.llmod,
+            llvm::ModuleFlagMergeBehavior::Error,
+            "Objective-C Image Info Version",
+            0,
+        );
+
+        llvm::add_module_flag_str(
+            self.llmod,
+            llvm::ModuleFlagMergeBehavior::Error,
+            "Objective-C Image Info Section",
+            if self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos" {
+                "__OBJC,__image_info,regular"
+            } else {
+                "__DATA,__objc_imageinfo,regular,no_dead_strip"
+            },
+        );
+
+        if self.tcx.sess.target.abi == "sim" {
+            llvm::add_module_flag_u32(
+                self.llmod,
+                llvm::ModuleFlagMergeBehavior::Error,
+                "Objective-C Is Simulated",
+                1 << 5,
+            );
+        }
+
+        llvm::add_module_flag_u32(
+            self.llmod,
+            llvm::ModuleFlagMergeBehavior::Error,
+            "Objective-C Class Properties",
+            1 << 6,
+        );
+    }
 }
 impl<'ll> SimpleCx<'ll> {
     pub(crate) fn get_return_type(&self, ty: &'ll Type) -> &'ll Type {

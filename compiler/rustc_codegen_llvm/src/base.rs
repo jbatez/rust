@@ -131,6 +131,11 @@ pub(crate) fn compile_codegen_unit(
                 }
             }
 
+            // Add Objective-C module flags.
+            if !cx.objc_selrefs.borrow().is_empty() {
+                cx.add_objc_module_flags();
+            }
+
             // Finalize debuginfo
             if cx.sess().opts.debuginfo != DebugInfo::None {
                 cx.debuginfo_finalize();
