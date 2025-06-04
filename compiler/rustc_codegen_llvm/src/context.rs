@@ -655,6 +655,8 @@ impl<'ll, 'tcx> CodegenCx<'ll, 'tcx> {
     }
 
     pub(crate) fn add_objc_module_flags(&self) {
+        assert!(self.tcx.sess.target.is_like_darwin);
+
         llvm::add_module_flag_u32(
             self.llmod,
             llvm::ModuleFlagMergeBehavior::Error,

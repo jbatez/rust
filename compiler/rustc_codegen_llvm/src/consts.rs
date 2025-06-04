@@ -573,6 +573,8 @@ impl<'ll> CodegenCx<'ll, '_> {
     pub(crate) fn get_objc_selref(&self, methname: Symbol) -> &'ll Value {
         let mut selrefs = self.objc_selrefs.borrow_mut();
         selrefs.get(&methname).copied().unwrap_or_else(|| {
+            assert!(self.tcx.sess.target.is_like_darwin);
+
             let methname_llval = self.null_terminate_const_bytes(methname.as_str().as_bytes());
             let methname_llty = self.val_ty(methname_llval);
             let methname_sym = self.generate_local_symbol_name("OBJC_METH_VAR_NAME_");
