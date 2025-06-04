@@ -1762,6 +1762,10 @@ impl<'a, 'gcc, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'gcc, 'tcx> {
     fn fptosi_sat(&mut self, val: RValue<'gcc>, dest_ty: Type<'gcc>) -> RValue<'gcc> {
         self.fptoint_sat(true, val, dest_ty)
     }
+
+    fn objc_selector(&mut self, methname: Symbol) -> &'ll Value {
+        todo!("FIXME(core_ffi_objc)");
+    }
 }
 
 impl<'a, 'gcc, 'tcx> Builder<'a, 'gcc, 'tcx> {
