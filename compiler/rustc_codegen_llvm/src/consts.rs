@@ -15,6 +15,7 @@ use rustc_middle::mir::mono::{Linkage, MonoItem};
 use rustc_middle::ty::layout::{HasTypingEnv, LayoutOf};
 use rustc_middle::ty::{self, Instance};
 use rustc_middle::{bug, span_bug};
+use rustc_span::Symbol;
 use tracing::{debug, instrument, trace};
 
 use crate::common::{AsCCharPtr, CodegenCx};
@@ -330,6 +331,10 @@ impl<'ll> CodegenCx<'ll, '_> {
             }
 
             g
+        } else if let Some(classname) = fn_attrs.objc_class {
+            self.get_objc_classref(classname)
+        } else if let Some(methname) = fn_attrs.objc_selector {
+            self.get_objc_selref(methname)
         } else {
             check_and_apply_linkage(self, fn_attrs, llty, sym, def_id)
         };
@@ -551,6 +556,165 @@ impl<'ll> CodegenCx<'ll, '_> {
     /// an array of ptr.
     pub(crate) fn add_compiler_used_global(&mut self, global: &'ll Value) {
         self.compiler_used_statics.push(global);
+    }
+
+    fn define_objc_classname(&self, classname: &str) -> &'ll Value {
+        // 32-bit x86 macOS only.
+        assert_eq!(self.tcx.sess.target.arch, "x86");
+        assert_eq!(self.tcx.sess.target.os, "macos");
+
+        let llval = self.null_terminate_const_bytes(classname.as_bytes());
+        let llty = self.val_ty(llval);
+        let sym = self.generate_local_symbol_name("OBJC_CLASS_NAME_");
+        let g = self.define_global(&sym, llty).unwrap_or_else(|| {
+            bug!("symbol `{}` is already defined", sym);
+        });
+        set_global_alignment(self, g, self.tcx.data_layout.i8_align.abi);
+        llvm::set_initializer(g, llval);
+        llvm::set_linkage(g, llvm::Linkage::PrivateLinkage);
+        llvm::set_section(g, c"__TEXT,__cstring,cstring_literals");
+        unsafe {
+            llvm::LLVMSetGlobalConstant(g, True);
+            llvm::LLVMSetUnnamedAddress(g, llvm::UnnamedAddr::Global);
+        }
+        g
+    }
+
+    fn get_objc_class_t(&self) -> &'ll Type {
+        if let Some(class_t) = self.objc_class_t.get() {
+            return class_t;
+        }
+
+        // Darwin-like targets other than 32-bit x86 macOS.
+        assert!(self.tcx.sess.target.is_like_darwin);
+        assert!(self.tcx.sess.target.arch != "x86" || self.tcx.sess.target.os != "macos");
+
+        let class_t = self.type_named_struct("struct._class_t");
+        let els = [self.type_ptr(); 5];
+        let packed = false;
+        self.set_struct_body(class_t, &els, packed);
+
+        self.objc_class_t.set(Some(class_t));
+        class_t
+    }
+
+    fn get_objc_classref(&self, classname: Symbol) -> &'ll Value {
+        let mut classrefs = self.objc_classrefs.borrow_mut();
+        classrefs.get(&classname).copied().unwrap_or_else(|| {
+            // Darwin-like targets only.
+            assert!(self.tcx.sess.target.is_like_darwin);
+            let is_x86_32_macos =
+                self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos";
+
+            let llval = if is_x86_32_macos {
+                self.define_objc_classname(classname.as_str())
+            } else {
+                let extern_sym = format!("OBJC_CLASS_$_{}", classname.as_str());
+                let extern_llty = self.get_objc_class_t();
+                self.declare_global(&extern_sym, extern_llty)
+            };
+
+            let llty = self.type_ptr();
+            let sym = self.generate_local_symbol_name(if is_x86_32_macos {
+                "OBJC_CLASS_REFERENCES_"
+            } else {
+                "OBJC_CLASSLIST_REFERENCES_$_"
+            });
+            let g = self.define_global(&sym, llty).unwrap_or_else(|| {
+                bug!("symbol `{}` is already defined", sym);
+            });
+            set_global_alignment(self, g, self.tcx.data_layout.pointer_align.abi);
+            llvm::set_initializer(g, llval);
+            if is_x86_32_macos {
+                llvm::set_linkage(g, llvm::Linkage::PrivateLinkage);
+                llvm::set_section(g, c"__OBJC,__cls_refs,literal_pointers");
+            } else {
+                llvm::set_linkage(g, llvm::Linkage::InternalLinkage);
+                llvm::set_section(g, c"__DATA,__objc_classrefs,regular");
+            }
+
+            classrefs.insert(classname, g);
+            g
+        })
+    }
+
+    fn get_objc_selref(&self, methname: Symbol) -> &'ll Value {
+        let mut selrefs = self.objc_selrefs.borrow_mut();
+        selrefs.get(&methname).copied().unwrap_or_else(|| {
+            // Darwin-like targets only.
+            assert!(self.tcx.sess.target.is_like_darwin);
+            let is_x86_32_macos =
+                self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos";
+
+            let methname_llval = self.null_terminate_const_bytes(methname.as_str().as_bytes());
+            let methname_llty = self.val_ty(methname_llval);
+            let methname_sym = self.generate_local_symbol_name("OBJC_METH_VAR_NAME_");
+            let methname_g =
+                self.define_global(&methname_sym, methname_llty).unwrap_or_else(|| {
+                    bug!("symbol `{}` is already defined", methname_sym);
+                });
+            set_global_alignment(self, methname_g, self.tcx.data_layout.i8_align.abi);
+            llvm::set_initializer(methname_g, methname_llval);
+            llvm::set_linkage(methname_g, llvm::Linkage::PrivateLinkage);
+            if is_x86_32_macos {
+                llvm::set_section(methname_g, c"__TEXT,__cstring,cstring_literals");
+            } else {
+                llvm::set_section(methname_g, c"__TEXT,__objc_methname,cstring_literals");
+            }
+            unsafe {
+                llvm::LLVMSetGlobalConstant(methname_g, True);
+                llvm::LLVMSetUnnamedAddress(methname_g, llvm::UnnamedAddr::Global);
+            }
+
+            let selref_llval = methname_g;
+            let selref_llty = self.type_ptr();
+            let selref_sym = self.generate_local_symbol_name("OBJC_SELECTOR_REFERENCES_");
+            let selref_g = self.define_global(&selref_sym, selref_llty).unwrap_or_else(|| {
+                bug!("symbol `{}` is already defined", selref_sym);
+            });
+            set_global_alignment(self, selref_g, self.tcx.data_layout.pointer_align.abi);
+            llvm::set_initializer(selref_g, selref_llval);
+            if is_x86_32_macos {
+                llvm::set_linkage(selref_g, llvm::Linkage::PrivateLinkage);
+                llvm::set_section(selref_g, c"__OBJC,__message_refs,literal_pointers");
+            } else {
+                llvm::set_linkage(selref_g, llvm::Linkage::InternalLinkage);
+                llvm::set_section(selref_g, c"__DATA,__objc_selrefs,literal_pointers");
+            }
+
+            selrefs.insert(methname, selref_g);
+            selref_g
+        })
+    }
+
+    pub(crate) fn define_objc_module_info(&mut self) {
+        // 32-bit x86 macOS only.
+        assert_eq!(self.tcx.sess.target.arch, "x86");
+        assert_eq!(self.tcx.sess.target.os, "macos");
+
+        let llty = self.type_named_struct("struct._objc_module");
+        let i32_llty = self.type_i32();
+        let ptr_llty = self.type_ptr();
+        let packed = false;
+        self.set_struct_body(llty, &[i32_llty, i32_llty, ptr_llty, ptr_llty], packed);
+
+        let version = self.const_uint(i32_llty, 7);
+        let size = self.const_uint(i32_llty, 16);
+        let name = self.define_objc_classname("");
+        let symtab = self.const_null(ptr_llty);
+        let packed = false;
+        let llval = self.const_struct(&[version, size, name, symtab], packed);
+
+        let sym = "OBJC_MODULES";
+        let g = self.define_global(&sym, llty).unwrap_or_else(|| {
+            bug!("symbol `{}` is already defined", sym);
+        });
+        set_global_alignment(self, g, self.tcx.data_layout.pointer_align.abi);
+        llvm::set_initializer(g, llval);
+        llvm::set_linkage(g, llvm::Linkage::PrivateLinkage);
+        llvm::set_section(g, c"__OBJC,__module_info,regular,no_dead_strip");
+
+        self.add_compiler_used_global(g);
     }
 }
 

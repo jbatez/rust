@@ -646,6 +646,14 @@ passes_rustc_lint_opt_ty =
     `#[rustc_lint_opt_ty]` should be applied to a struct
     .label = not a struct
 
+passes_rustc_objc_class =
+    attribute should be applied to a foreign static
+    .label = not a foreign static
+
+passes_rustc_objc_selector =
+    attribute should be applied to a foreign static
+    .label = not a foreign static
+
 passes_rustc_pub_transparent =
     attribute should be applied to `#[repr(transparent)]` types
     .label = not a `#[repr(transparent)]` type

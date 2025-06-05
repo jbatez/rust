@@ -1304,3 +1304,17 @@ pub(crate) struct XcrunSdkPathWarning {
 #[derive(LintDiagnostic)]
 #[diag(codegen_ssa_aarch64_softfloat_neon)]
 pub(crate) struct Aarch64SoftfloatNeon;
+
+#[derive(Diagnostic)]
+#[diag(codegen_ssa_null_on_rustc_objc_class)]
+pub(crate) struct NullOnRustcObjcClass {
+    #[primary_span]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(codegen_ssa_null_on_rustc_objc_selector)]
+pub(crate) struct NullOnRustcObjcSelector {
+    #[primary_span]
+    pub span: Span,
+}

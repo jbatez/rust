@@ -164,6 +164,9 @@
 #[stable(feature = "c_str_module", since = "1.88.0")]
 pub mod c_str;
 
+#[unstable(feature = "core_ffi_objc", issue = "none")]
+pub mod objc;
+
 #[stable(feature = "core_c_void", since = "1.30.0")]
 pub use core::ffi::c_void;
 #[unstable(
