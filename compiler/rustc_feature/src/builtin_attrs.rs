@@ -1072,6 +1072,10 @@ pub static BUILTIN_ATTRIBUTES: &[BuiltinAttribute] = &[
         rustc_force_inline, Normal, template!(Word, NameValueStr: "reason"), WarnFollowing, EncodeCrossCrate::Yes,
         "#[rustc_force_inline] forces a free function to be inlined"
     ),
+    rustc_attr!(
+        rustc_objc_selector, Normal, template!(List: "methname"), ErrorPreceding,
+        EncodeCrossCrate::No, INTERNAL_UNSTABLE
+    ),
 
     // ==========================================================================
     // Internal attributes, Testing:

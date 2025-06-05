@@ -17,6 +17,7 @@ use rustc_middle::mir::mono::{Linkage, MonoItem};
 use rustc_middle::ty::layout::{HasTypingEnv, LayoutOf};
 use rustc_middle::ty::{self, Instance};
 use rustc_middle::{bug, span_bug};
+use rustc_span::Symbol;
 use tracing::{debug, instrument, trace};
 
 use crate::common::{AsCCharPtr, CodegenCx};
@@ -346,6 +347,8 @@ impl<'ll> CodegenCx<'ll, '_> {
             }
 
             g
+        } else if let Some(methname) = fn_attrs.objc_selector {
+            self.get_objc_selref(methname)
         } else {
             check_and_apply_linkage(self, fn_attrs, llty, sym, def_id)
         };
@@ -567,6 +570,52 @@ impl<'ll> CodegenCx<'ll, '_> {
     /// an array of ptr.
     pub(crate) fn add_compiler_used_global(&mut self, global: &'ll Value) {
         self.compiler_used_statics.push(global);
+    }
+
+    fn get_objc_selref(&self, methname: Symbol) -> &'ll Value {
+        let mut selrefs = self.objc_selrefs.borrow_mut();
+        selrefs.get(&methname).copied().unwrap_or_else(|| {
+            assert!(self.tcx.sess.target.is_like_darwin);
+
+            let methname_llval = self.null_terminate_const_bytes(methname.as_str().as_bytes());
+            let methname_llty = self.val_ty(methname_llval);
+            let methname_sym = self.generate_local_symbol_name("OBJC_METH_VAR_NAME_");
+            let methname_g =
+                self.define_global(&methname_sym, methname_llty).unwrap_or_else(|| {
+                    bug!("symbol `{}` is already defined", methname_sym);
+                });
+            set_global_alignment(self, methname_g, self.tcx.data_layout.i8_align.abi);
+            llvm::set_initializer(methname_g, methname_llval);
+            llvm::set_linkage(methname_g, llvm::Linkage::PrivateLinkage);
+            if self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos" {
+                llvm::set_section(methname_g, c"__TEXT,__cstring,cstring_literals");
+            } else {
+                llvm::set_section(methname_g, c"__TEXT,__objc_methname,cstring_literals");
+            }
+            unsafe {
+                llvm::LLVMSetGlobalConstant(methname_g, True);
+                llvm::LLVMSetUnnamedAddress(methname_g, llvm::UnnamedAddr::Global);
+            }
+
+            let selref_llval = methname_g;
+            let selref_llty = self.type_ptr();
+            let selref_sym = self.generate_local_symbol_name("OBJC_SELECTOR_REFERENCES_");
+            let selref_g = self.define_global(&selref_sym, selref_llty).unwrap_or_else(|| {
+                bug!("symbol `{}` is already defined", selref_sym);
+            });
+            set_global_alignment(self, selref_g, self.tcx.data_layout.pointer_align.abi);
+            llvm::set_initializer(selref_g, selref_llval);
+            if self.tcx.sess.target.arch == "x86" && self.tcx.sess.target.os == "macos" {
+                llvm::set_linkage(selref_g, llvm::Linkage::PrivateLinkage);
+                llvm::set_section(selref_g, c"__OBJC,__message_refs,literal_pointers");
+            } else {
+                llvm::set_linkage(selref_g, llvm::Linkage::InternalLinkage);
+                llvm::set_section(selref_g, c"__DATA,__objc_selrefs,literal_pointers");
+            }
+
+            selrefs.insert(methname, selref_g);
+            selref_g
+        })
     }
 }
 

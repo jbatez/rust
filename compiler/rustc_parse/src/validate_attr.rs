@@ -30,7 +30,10 @@ pub fn check_attr(psess: &ParseSess, attr: &Attribute, id: NodeId) {
     // Check input tokens for built-in and key-value attributes.
     match builtin_attr_info {
         // `rustc_dummy` doesn't have any restrictions specific to built-in attributes.
-        Some(BuiltinAttribute { name, template, .. }) if *name != sym::rustc_dummy => {
+        // `rustc_objc_selector` is parsed in `rustc_attr_parsing::attributes::objc_selector`.
+        Some(BuiltinAttribute { name, template, .. })
+            if *name != sym::rustc_dummy && *name != sym::rustc_objc_selector =>
+        {
             match parse_meta(psess, attr) {
                 // Don't check safety again, we just did that
                 Ok(meta) => {

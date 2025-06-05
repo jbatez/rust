@@ -132,6 +132,9 @@ impl<'tcx> CheckAttrVisitor<'tcx> {
                         target,
                         attrs,
                     ),
+                Attribute::Parsed(AttributeKind::ObjcSelector(_)) => {
+                    self.check_rustc_objc_selector(attr, span, target)
+                }
                 _ => {
                     match attr.path().as_slice() {
                         [sym::diagnostic, sym::do_not_recommend, ..] => {
@@ -2668,6 +2671,16 @@ impl<'tcx> CheckAttrVisitor<'tcx> {
             _ => {
                 self.dcx().emit_err(errors::AutoDiffAttr { attr_span: span });
                 self.abort.set(true);
+            }
+        }
+    }
+
+    /// Checks if `#[rustc_objc_selector]` is applied to an item other than a foreign static.
+    fn check_rustc_objc_selector(&self, attr: &Attribute, span: Span, target: Target) {
+        match target {
+            Target::ForeignStatic => {}
+            _ => {
+                self.dcx().emit_err(errors::RustcObjcSelector { attr_span: attr.span(), span });
             }
         }
     }

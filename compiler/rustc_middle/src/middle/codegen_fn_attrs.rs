@@ -55,6 +55,8 @@ pub struct CodegenFnAttrs {
     pub patchable_function_entry: Option<PatchableFunctionEntry>,
     /// For the `#[autodiff]` macros.
     pub autodiff_item: Option<AutoDiffAttrs>,
+    /// The `#[rustc_objc_selector(methname)]` attribute.
+    pub objc_selector: Option<Symbol>,
 }
 
 #[derive(Copy, Clone, Debug, TyEncodable, TyDecodable, HashStable)]
@@ -161,6 +163,7 @@ impl CodegenFnAttrs {
             alignment: None,
             patchable_function_entry: None,
             autodiff_item: None,
+            objc_selector: None,
         }
     }
 

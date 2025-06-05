@@ -14,6 +14,7 @@ use rustc_span::{DUMMY_SP, ErrorGuaranteed, Span, Symbol, sym};
 use crate::attributes::allow_unstable::{AllowConstFnUnstableParser, AllowInternalUnstableParser};
 use crate::attributes::confusables::ConfusablesParser;
 use crate::attributes::deprecation::DeprecationParser;
+use crate::attributes::objc_selector::parse_attr_objc_selector;
 use crate::attributes::repr::ReprParser;
 use crate::attributes::stability::{
     BodyStabilityParser, ConstStabilityIndirectParser, ConstStabilityParser, StabilityParser,
@@ -262,6 +263,11 @@ impl<'sess> AttributeParser<'sess> {
                 //         comment: p.args().name_value(),
                 //     }))
                 // }
+                ast::AttrKind::Normal(_) if attr.has_name(sym::rustc_objc_selector) => {
+                    if let Some(attr) = parse_attr_objc_selector(attr, self.dcx()) {
+                        attributes.push(Attribute::Parsed(attr));
+                    }
+                }
                 ast::AttrKind::Normal(n) => {
                     let parser = MetaItemParser::from_attr(n, self.dcx());
                     let path = parser.path();

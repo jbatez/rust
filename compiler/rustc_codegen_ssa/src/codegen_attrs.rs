@@ -119,6 +119,10 @@ fn codegen_fn_attrs(tcx: TyCtxt<'_>, did: LocalDefId) -> CodegenFnAttrs {
                         .max();
                 }
 
+                AttributeKind::ObjcSelector(methname) => {
+                    codegen_fn_attrs.objc_selector = Some(*methname)
+                }
+
                 _ => {}
             }
         }
