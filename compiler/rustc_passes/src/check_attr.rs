@@ -277,6 +277,8 @@ impl<'tcx> CheckAttrVisitor<'tcx> {
                         }
                         [sym::linkage, ..] => self.check_linkage(attr, span, target),
                         [sym::rustc_pub_transparent, ..] => self.check_rustc_pub_transparent(attr.span(), span, attrs),
+                        [sym::rustc_objc_class, ..] => self.check_rustc_objc_class(attr, span, target),
+                        [sym::rustc_objc_selector, ..] => self.check_rustc_objc_selector(attr, span, target),
                         [
                             // ok
                             sym::allow
@@ -2678,6 +2680,26 @@ impl<'tcx> CheckAttrVisitor<'tcx> {
             _ => {
                 self.dcx().emit_err(errors::AutoDiffAttr { attr_span: span });
                 self.abort.set(true);
+            }
+        }
+    }
+
+    /// Checks if `#[rustc_objc_class]` is applied to an item other than a foreign static.
+    fn check_rustc_objc_class(&self, attr: &Attribute, span: Span, target: Target) {
+        match target {
+            Target::ForeignStatic => {}
+            _ => {
+                self.dcx().emit_err(errors::RustcObjcClass { attr_span: attr.span(), span });
+            }
+        }
+    }
+
+    /// Checks if `#[rustc_objc_selector]` is applied to an item other than a foreign static.
+    fn check_rustc_objc_selector(&self, attr: &Attribute, span: Span, target: Target) {
+        match target {
+            Target::ForeignStatic => {}
+            _ => {
+                self.dcx().emit_err(errors::RustcObjcSelector { attr_span: attr.span(), span });
             }
         }
     }

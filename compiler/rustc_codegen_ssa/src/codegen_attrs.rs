@@ -443,6 +443,26 @@ fn codegen_fn_attrs(tcx: TyCtxt<'_>, did: LocalDefId) -> CodegenFnAttrs {
                     ))
                 })
             }
+            sym::rustc_objc_class => {
+                if let Some(s) = attr.value_str() {
+                    if s.as_str().contains('\0') {
+                        // `#[rustc_objc_class = ...]` will be converted to a null-terminated
+                        // string, so it may not contain any null characters.
+                        tcx.dcx().emit_err(errors::NullOnRustcObjcClass { span: attr.span() });
+                    }
+                    codegen_fn_attrs.objc_class = Some(s);
+                }
+            }
+            sym::rustc_objc_selector => {
+                if let Some(s) = attr.value_str() {
+                    if s.as_str().contains('\0') {
+                        // `#[rustc_objc_selector = ...]` will be converted to a null-terminated
+                        // string, so it may not contain any null characters.
+                        tcx.dcx().emit_err(errors::NullOnRustcObjcSelector { span: attr.span() });
+                    }
+                    codegen_fn_attrs.objc_selector = Some(s);
+                }
+            }
             _ => {}
         }
     }

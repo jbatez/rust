@@ -108,6 +108,14 @@ pub(crate) fn compile_codegen_unit(
                 attributes::apply_to_llfn(entry, llvm::AttributePlace::Function, &attrs);
             }
 
+            // Define Objective-C module info for 32-bit x86 macOS. Note, this generates a global
+            // that gets added to the `llvm.compiler.used` variable, created later.
+            let uses_objc =
+                !cx.objc_classrefs.borrow().is_empty() || !cx.objc_selrefs.borrow().is_empty();
+            if uses_objc && cx.tcx.sess.target.arch == "x86" && cx.tcx.sess.target.os == "macos" {
+                cx.define_objc_module_info();
+            }
+
             // Finalize code coverage by injecting the coverage map. Note, the coverage map will
             // also be added to the `llvm.compiler.used` variable, created next.
             if cx.sess().instrument_coverage() {
@@ -129,6 +137,11 @@ pub(crate) fn compile_codegen_unit(
                     llvm::LLVMReplaceAllUsesWith(old_g, new_g);
                     llvm::LLVMDeleteGlobal(old_g);
                 }
+            }
+
+            // Add Objective-C module flags.
+            if uses_objc {
+                cx.add_objc_module_flags();
             }
 
             // Finalize debuginfo

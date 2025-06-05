@@ -51,6 +51,7 @@ const EXCEPTION_PATHS: &[&str] = &[
     "library/core/src/ffi/va_list.rs",
     // core::ffi contains platform-specific type and linkage configuration
     "library/core/src/ffi/mod.rs",
+    "library/core/src/ffi/objc.rs", // Not available on every platform
     "library/core/src/ffi/primitives.rs",
     "library/std/src/sys", // Platform-specific code for std lives here.
     "library/std/src/os",  // Platform-specific public interfaces
@@ -63,6 +64,7 @@ const EXCEPTION_PATHS: &[&str] = &[
     "library/std/src/sys_common", // Should only contain abstractions over platforms
     "library/std/src/net/test.rs", // Utility helpers for tests
     "library/std/src/io/error.rs", // Repr unpacked needed for UEFI
+    "library/std/src/ffi/objc.rs", // Not available on every platform
 ];
 
 pub fn check(path: &Path, bad: &mut bool) {

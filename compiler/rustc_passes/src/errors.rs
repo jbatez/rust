@@ -1771,6 +1771,24 @@ pub(crate) struct UnsupportedAttributesInWhere {
 }
 
 #[derive(Diagnostic)]
+#[diag(passes_rustc_objc_class)]
+pub(crate) struct RustcObjcClass {
+    #[primary_span]
+    pub attr_span: Span,
+    #[label]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(passes_rustc_objc_selector)]
+pub(crate) struct RustcObjcSelector {
+    #[primary_span]
+    pub attr_span: Span,
+    #[label]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
 pub(crate) enum UnexportableItem<'a> {
     #[diag(passes_unexportable_item)]
     Item {
