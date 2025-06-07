@@ -37,31 +37,35 @@ pub(crate) fn parse_attr_objc_selector(
 
         // Check if the current token tree is an identifier.
         // If it is, append it to the method name and get the next token tree.
-        let (may_terminate, expect_ident) = match token_tree {
-            Some(TokenTree::Token(Token { kind: TokenKind::Ident(ident, _), span }, _)) => {
-                // The method name may terminate if it's just a single identifier.
-                // Every other identifier requires a colon immediately after.
-                let may_terminate = methname.is_empty();
-                if !may_terminate && token_iter.peek().is_none() {
-                    // Since the CloseParen is usually inside a macro invocation,
-                    // we point the error at the identifier instead.
-                    let msg = "expected `:` after this identifier";
-                    dcx.struct_span_err(*span, msg).with_span_label(*span, msg).emit();
-                    return None;
+        let (may_terminate, expect_ident) = 'block: {
+            if let Some(TokenTree::Token(token, _)) = token_tree {
+                if let Some((ident, _)) = token.ident() {
+                    // The method name may terminate if it's just a single identifier.
+                    // Every other identifier requires a colon immediately after.
+                    let may_terminate = methname.is_empty();
+                    if !may_terminate && token_iter.peek().is_none() {
+                        // Since the CloseParen is usually inside a macro invocation,
+                        // we point the error at the identifier instead.
+                        let span = token.span;
+                        let msg = "expected `:` after this identifier";
+                        dcx.struct_span_err(span, msg).with_span_label(span, msg).emit();
+                        return None;
+                    }
+
+                    methname.push_str(ident.as_str());
+                    token_tree = token_iter.next();
+
+                    // Don't expect an identifier immediately after an identifier.
+                    let expect_ident = false;
+                    break 'block (may_terminate, expect_ident);
                 }
-
-                methname.push_str(ident.as_str());
-                token_tree = token_iter.next();
-
-                // Don't expect an identifier immediately after an identifier.
-                let expect_ident = false;
-                (may_terminate, expect_ident)
             }
-            _ => {
-                let may_terminate = !methname.is_empty();
-                let expect_ident = true;
-                (may_terminate, expect_ident)
-            }
+
+            // The current token tree isn't an identifier.
+            // We need something in the method name before it terminates.
+            let may_terminate = !methname.is_empty();
+            let expect_ident = true;
+            (may_terminate, expect_ident)
         };
 
         // Determine the next token kind and span.
